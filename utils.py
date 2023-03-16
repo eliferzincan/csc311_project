@@ -38,7 +38,7 @@ def load_train_sparse(root_dir="/data"):
     :param root_dir: str
     :return: 2D sparse matrix
     """
-    path = os.path.join(root_dir, "Data/train_sparse.npz")
+    path = os.path.join(root_dir, "data/train_sparse.npz")
     if not os.path.exists(path):
         raise Exception("The specified path {} "
                         "does not exist.".format(os.path.abspath(path)))
@@ -57,7 +57,7 @@ def load_train_csv(root_dir="/data"):
         is_correct: a list of binary value indicating the correctness of
         (user_id, question_id) pair.
     """
-    path = os.path.join(root_dir, "Data/train_data.csv")
+    path = os.path.join(root_dir, "data/train_data.csv")
     return _load_csv(path)
 
 
@@ -72,7 +72,7 @@ def load_valid_csv(root_dir="/data"):
         is_correct: a list of binary value indicating the correctness of
         (user_id, question_id) pair.
     """
-    path = os.path.join(root_dir, "Data/valid_data.csv")
+    path = os.path.join(root_dir, "data/valid_data.csv")
     return _load_csv(path)
 
 
@@ -87,7 +87,7 @@ def load_public_test_csv(root_dir="/data"):
         is_correct: a list of binary value indicating the correctness of
         (user_id, question_id) pair.
     """
-    path = os.path.join(root_dir, "Data/test_data.csv")
+    path = os.path.join(root_dir, "data/test_data.csv")
     return _load_csv(path)
 
 
@@ -101,7 +101,7 @@ def load_private_test_csv(root_dir="/data"):
         question_id: a list of question id.
         is_correct: an empty list.
     """
-    path = os.path.join(root_dir, "Data/private_test_data.csv")
+    path = os.path.join(root_dir, "data/private_test_data.csv")
     return _load_csv(path)
 
 
@@ -119,7 +119,7 @@ def save_private_test_csv(data, file_name="private_test_result.csv"):
     :return: None
     """
     if not isinstance(data, dict):
-        raise Exception("Data must be a dictionary.")
+        raise Exception("data must be a dictionary.")
     cur_id = 1
     valid_id = ["0", "1"]
     with open(file_name, "w") as csv_file:

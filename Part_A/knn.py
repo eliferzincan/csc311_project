@@ -1,4 +1,5 @@
 from sklearn.impute import KNNImputer
+import matplotlib.pyplot as plt
 from utils import *
 
 
@@ -37,7 +38,11 @@ def knn_impute_by_item(matrix, valid_data, k):
     # TODO:                                                             #
     # Implement the function as described in the docstring.             #
     #####################################################################
-    acc = None
+    nbrs = KNNImputer(n_neighbors=k)
+    # We use NaN-Euclidean distance measure.
+    mat = nbrs.fit_transform(matrix.T)
+    acc = sparse_matrix_evaluate(valid_data, mat.T)
+    print("Validation Accuracy: {}".format(acc))
     #####################################################################
     #                       END OF YOUR CODE                            #
     #####################################################################
@@ -45,9 +50,9 @@ def knn_impute_by_item(matrix, valid_data, k):
 
 
 def main():
-    sparse_matrix = load_train_sparse("../data").toarray()
-    val_data = load_valid_csv("../data")
-    test_data = load_public_test_csv("../data")
+    sparse_matrix = load_train_sparse("../").toarray()
+    val_data = load_valid_csv("../")
+    test_data = load_public_test_csv("../")
 
     print("Sparse matrix:")
     print(sparse_matrix)
@@ -60,7 +65,24 @@ def main():
     # the best performance and report the test accuracy with the        #
     # chosen k*.                                                        #
     #####################################################################
-    pass
+    k_lst = [1,6,11,16,21,26]
+    user_based_lst = []
+    item_based_lst = []
+    for k in k_lst:
+        user_accuracy = knn_impute_by_user(sparse_matrix, val_data, k)
+        user_based_lst.append(user_accuracy)
+        item_accuracy = knn_impute_by_item(sparse_matrix, val_data, k)
+        item_based_lst.append(user_accuracy)
+
+    plt.plot(k_lst, user_based_lst)
+    plt.xlabel("Value of K")
+    plt.ylabel("Validation Accuracy")
+    plt.show()
+
+    plt.plot(k_lst, item_based_lst)
+    plt.xlabel("Value of K")
+    plt.ylabel("Validation Accuracy")
+    plt.show()
     #####################################################################
     #                       END OF YOUR CODE                            #
     #####################################################################
