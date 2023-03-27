@@ -25,14 +25,14 @@ def bootstrap(data):
     return resample, sparse_matrix_bootstrapped
 
 
-def bagging_knn_user(train_data, sparse_matrix, valid_data, bag_number, k):
+def bagging_knn_user(train_data, valid_data, k):
     total = 0
-    for i in range(bag_number):
+    for i in range(3):
         resample, sparse_matrix_bootstrapped = bootstrap(train_data)
         nbrs = KNNImputer(n_neighbors=k)
         mat = nbrs.fit_transform(sparse_matrix_bootstrapped)
         total += mat
-    avg = total / bag_number
+    avg = total / 3
     nbrs = KNNImputer(n_neighbors=k)
     avg_fit = nbrs.fit_transform(avg)
     acc = sparse_matrix_evaluate(valid_data, avg_fit)
@@ -45,7 +45,7 @@ def main():
     val_data = load_valid_csv("../")
     test_data = load_public_test_csv("../")
 
-    accuracy = bagging_knn_user(train_data, sparse_matrix, val_data, 3, 11)
+    accuracy = bagging_knn_user(train_data, val_data, 11)
     print("Accuracy after bagging is " + str(accuracy))
 
 
