@@ -9,21 +9,34 @@ from scipy.sparse import csr_matrix
 from sklearn.impute import KNNImputer
 
 
-def bootstrap(train_data):
-    n = len(train_data["question_id"])
+def bootstrap(data):
+    n = len(data["question_id"])
     resample = {"question_id": [], "user_id": [], "is_correct": []}
-    # resample each column with a random integer within the range of that column
     for i in range(n):
-        index_question = random.randint(min(train_data["question_id"]), max(train_data["question_id"]))
-        index_user = random.randint(min(train_data["user_id"]), max(train_data["user_id"]))
-        index_correct = random.randint(min(train_data["is_correct"]), max(train_data["is_correct"]))
-        resample["question_id"].append(index_question)
-        resample["user_id"].append(index_user)
-        resample["is_correct"].append(index_correct)
+        # choose a random index with replacement
+        index = random.randint(0, n - 1)
+        # append the corresponding row to the resampled data
+        resample["question_id"].append(data["question_id"][index])
+        resample["user_id"].append(data["user_id"][index])
+        resample["is_correct"].append(data["is_correct"][index])
     # create sparse matrix from resampled data
     sparse_matrix_bootstrapped = csr_matrix((resample["is_correct"], (resample["user_id"], resample["question_id"])),
                                             shape=(542, 1774)).toarray()
     return resample, sparse_matrix_bootstrapped
+
+
+def bagging_knn_user(train_data, sparse_matrix, valid_data, bag_number, k):
+    total = 0
+    for i in range(bag_number):
+        resample, sparse_matrix_bootstrapped = bootstrap(train_data)
+        nbrs = KNNImputer(n_neighbors=k)
+        mat = nbrs.fit_transform(sparse_matrix_bootstrapped)
+        total += mat
+    avg = total / bag_number
+    nbrs = KNNImputer(n_neighbors=k)
+    avg_fit = nbrs.fit_transform(avg)
+    acc = sparse_matrix_evaluate(valid_data, avg_fit)
+    return acc
 
 
 def main():
@@ -32,9 +45,7 @@ def main():
     val_data = load_valid_csv("../")
     test_data = load_public_test_csv("../")
 
-    # QUESTION: should i use validation data?? which k value should i use? also helper functions in knn to another file
-    data_knn, sparse_matrix_knn = bootstrap(val_data)
-    accuracy = knn_impute_by_item(sparse_matrix_knn, data_knn, 4)
+    accuracy = bagging_knn_user(train_data, sparse_matrix, val_data, 3, 11)
     print("Accuracy after bagging is " + str(accuracy))
 
 
