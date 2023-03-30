@@ -112,20 +112,20 @@ def irt(data, val_data, lr, iterations, g):
         ll_train.append(-neg_lld)
         ll_valid.append(-neg_log_likelihood(val_data, theta, beta, d=d, g=g))
 
-        score = evaluate(data=val_data, theta=theta, beta=beta, d=d, g=g)
-        score_train = evaluate(data=data, theta=theta, beta=beta, d=d, g=g)
+        score = irt_evaluate(data=val_data, theta=theta, beta=beta, d=d, g=g)
+        score_train = irt_evaluate(data=data, theta=theta, beta=beta, d=d, g=g)
         val_acc_lst.append(score)
         train_acc_lst.append(score_train)
         iteration.append(i)
 
-        print("iteration: {} \t NLLK: {} \t Score: {}".format(i, neg_lld, score))
+        #print("iteration: {} \t NLLK: {} \t Score: {}".format(i, neg_lld, score))
         theta, beta, d = update_theta_beta(data, lr, theta, beta, d, g)
 
     return theta, beta, val_acc_lst, train_acc_lst, iteration, ll_train, \
            ll_valid
 
 
-def evaluate(data, theta, beta, d, g):
+def irt_evaluate(data, theta, beta, d, g):
     """ Evaluate the model given data and return the accuracy.
     :param data: A dictionary {user_id: list, question_id: list,
     is_correct: list}
@@ -146,9 +146,9 @@ def evaluate(data, theta, beta, d, g):
 
 
 def main():
-    train_data = load_train_csv("./data")
-    val_data = load_valid_csv("./data")
-    test_data = load_public_test_csv("./data")
+    train_data = load_train_csv("../")
+    val_data = load_valid_csv("../")
+    test_data = load_public_test_csv("../")
 
     theta, beta, val_accuracies, train_accuracies, iterations, \
     ll_train, ll_valid = irt(train_data, val_data, 0.03, 25, 0.25)
