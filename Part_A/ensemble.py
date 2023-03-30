@@ -1,12 +1,10 @@
-from Part_A.knn import knn_impute_by_item
+from Part_A.knn import knn_impute_by_user
 from utils import *
-import numpy as np
 import random
-from sklearn import model_selection
-from sklearn.ensemble import BaggingClassifier
-from sklearn.tree import DecisionTreeClassifier
 from scipy.sparse import csr_matrix
 from sklearn.impute import KNNImputer
+from item_response import irt, evaluate
+
 
 
 def bootstrap(data):
@@ -26,17 +24,29 @@ def bootstrap(data):
 
 
 def bagging_knn_user(train_data, valid_data, k):
-    total = 0
+    avg_train = 0
     for i in range(3):
         resample, sparse_matrix_bootstrapped = bootstrap(train_data)
         nbrs = KNNImputer(n_neighbors=k)
         mat = nbrs.fit_transform(sparse_matrix_bootstrapped)
-        total += mat
-    avg = total / 3
+        avg_train += mat
+        valid_acc = knn_impute_by_user(sparse_matrix_bootstrapped, valid_data, k)
+    avg_train = avg_train / 3
     nbrs = KNNImputer(n_neighbors=k)
-    avg_fit = nbrs.fit_transform(avg)
-    acc = sparse_matrix_evaluate(valid_data, avg_fit)
-    return acc
+    avg_fit = nbrs.fit_transform(avg_train)
+    train_acc = sparse_matrix_evaluate(valid_data, avg_fit)
+    return train_acc
+
+
+def bagging_irt(train_data, valid_data, lr, iterations):
+    val_accuracy = 0
+    for i in range(3):
+        resample, sparse_matrix_bootstrapped = bootstrap(train_data)
+        theta, beta, val_acc_lst, train_acc_lst, iteration, ll_train, ll_valid = irt(resample, valid_data, lr,
+                                                                                     iterations)
+        val_accuracy += evaluate(valid_data, theta, beta)
+    return val_accuracy/3
+
 
 
 def main():
@@ -46,8 +56,10 @@ def main():
     test_data = load_public_test_csv("../")
 
     accuracy = bagging_knn_user(train_data, val_data, 11)
-    print("Accuracy after bagging is " + str(accuracy))
+    print("KNN: Accuracy after bagging is " + str(accuracy))
 
+    val_accuracy = bagging_irt(train_data, val_data, 0.008, 19)
+    print("IRT: Accuracy after bagging is " + str(val_accuracy))
 
 if __name__ == "__main__":
     main()
