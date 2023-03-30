@@ -66,10 +66,12 @@ def main():
     test_data = load_public_test_csv("../")
 
     theta, beta, val_accuracies, train_accuracies, iterations, ll_train, ll_valid \
-        = irt_bayesian(train_data, val_data, 0.03, 25, 0.25, prior_alpha=20, prior_beta=30)
+        = irt_bayesian(train_data, val_data, 0.01, 25, 0.25, prior_alpha=20, prior_beta=30)
     print(val_accuracies)
     print(train_accuracies)
 
+    # fix iterations array shape to match accuracy arrays
+    iterations = range(1, iterations + 1)
     plt.plot(iterations, train_accuracies, label='Train Accuracy')
     plt.show()
     plt.plot(iterations, val_accuracies, label='Validation Accuracy')
