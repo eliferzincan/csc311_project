@@ -19,14 +19,16 @@ def irt_bayesian(data, val_data, lr, iterations, g, prior_alpha, prior_beta):
     """
     nu = max(data["user_id"]) + 1
     nq = max(data["question_id"]) + 1
+    iteration = []
 
     # Initialize theta and beta with part b (parameters added) irt model
-    theta, beta, val_acc_lst, train_acc_lst, iteration, ll_train, ll_valid = irt(data, val_data, lr, iterations, g)
+    theta, beta, val_acc_lst, train_acc_lst, iterations_other, ll_train, ll_valid = irt(data, val_data, lr, iterations, g)
 
     # Initialize discrimination with prior distribution
     np.random.seed(66)
     d = np.random.gamma(prior_alpha, prior_beta, size=(nq, 1))
-
+    val_acc_lst_b = []
+    train_acc_lst_b = []
     for i in range(iterations):
         # alpha_posterior = prior_alpha + np.sum(theta - beta, axis=0).reshape((nq,))
         # beta_posterior = prior_beta + np.sum(d * np.power(theta - beta, 2), axis=0).reshape((nq,))
@@ -50,14 +52,14 @@ def irt_bayesian(data, val_data, lr, iterations, g, prior_alpha, prior_beta):
         ll_valid.append(-neg_log_likelihood(val_data, theta, beta, d=d, g=g))
         score = irt_evaluate(val_data, theta, beta, d, g)
         score_train = irt_evaluate(data, theta, beta, d, g)
-        val_acc_lst.append(score)
-        train_acc_lst.append(score_train)
+        val_acc_lst_b.append(score)
+        train_acc_lst_b.append(score_train)
         iteration.append(i)
 
         print("iteration: {} \t Score: {}".format(i, score))
 
-    return theta, beta, val_acc_lst, train_acc_lst, iterations, \
-           ll_train, ll_valid
+    return theta, beta, val_acc_lst, train_acc_lst, iteration, ll_train, \
+           ll_valid
 
 
 def main():
@@ -65,16 +67,18 @@ def main():
     val_data = load_valid_csv("../")
     test_data = load_public_test_csv("../")
 
-    theta, beta, val_accuracies, train_accuracies, iterations, ll_train, ll_valid \
-        = irt_bayesian(train_data, val_data, 0.01, 25, 0.25, prior_alpha=20, prior_beta=30)
-    print(val_accuracies)
+    theta, beta, test_accuracy, train_accuracies, iteration, ll_train, ll_valid = irt_bayesian(train_data, test_data,
+                                                                                                0.008,
+                                                                                                50, 0.25, prior_alpha=5,
+                                                                                                prior_beta=5)
+    # best accuracy obtained: train 0.7435788879480666 val 0.7082980524978831 iter=50 priors=5 lr=0.08
+
+    print(test_accuracy)
     print(train_accuracies)
 
-    # fix iterations array shape to match accuracy arrays
-    iterations = range(1, iterations + 1)
-    plt.plot(iterations, train_accuracies, label='Train Accuracy')
+    plt.plot(list(iteration), train_accuracies, label='Train Accuracy')
     plt.show()
-    plt.plot(iterations, val_accuracies, label='Validation Accuracy')
+    plt.plot(list(iteration), test_accuracy, label='Validation Accuracy')
     plt.show()
 
 
